@@ -30,6 +30,16 @@ public class HungrySnakeGUI extends JFrame{
         this.setJMenuBar(menuBar);
         JMenu menu1 = new JMenu("Archivo");
         menuBar.add(menu1);
+
+        JMenuItem newOption = new JMenuItem("Nuevo");
+        JMenuItem openOption = new JMenuItem("Abrir");
+        JMenuItem saveOption = new JMenuItem("Salvar");
+        JMenuItem exitOption = new JMenuItem("Salir");
+
+        menu1.add(newOption);
+        menu1.add(openOption);
+        menu1.add(saveOption);
+        menu1.add(exitOption);
     }
 
     public void prepareController(){
