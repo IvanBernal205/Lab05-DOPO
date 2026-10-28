@@ -47,7 +47,43 @@ public class HungrySnakeGUI extends JFrame{
           @Override 
           public void windowClosing(WindowEvent e){
             confirm();
-          }  
+          }
+        });
+        prepareControllerMenu();
+    }
+
+    public void prepareControllerMenu(){
+        JMenu menuBar = this.getJMenuBar().getMenu(0);
+
+        JMenuItem openOption = menuBar.getItem(1);
+        JMenuItem saveOption = menuBar.getItem(2);
+        JMenuItem exitOption = menuBar.getItem(3);
+
+        //Salir
+        exitOption.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                confirm();
+            }
+        });
+
+        //Salvar
+        saveOption.addActionListener(new ActionListener(){
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                JFileChooser selector = new JFileChooser();
+                
+                int result = selector.showOpenDialog(null);
+                
+            }
+        });
+
+        //Abrir
+        openOption.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+
+            }            
         });
     }
 
@@ -56,9 +92,12 @@ public class HungrySnakeGUI extends JFrame{
         if (respuesta == 0) System.exit(0);
     }
 
-        public static void main(String[] args){
+
+
+    public static void main(String[] args){
         HungrySnakeGUI hungrySnake = new HungrySnakeGUI();
         hungrySnake.setVisible(true);
+
     }
 
 }
