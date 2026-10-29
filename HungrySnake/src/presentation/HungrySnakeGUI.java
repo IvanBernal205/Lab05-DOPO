@@ -2,12 +2,18 @@ package presentation;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.*;
+
+import java.io.File;
 
 
 public class HungrySnakeGUI extends JFrame{
+    ArrayList<JPanel> panels;
+
 
     public HungrySnakeGUI(){
         this.setTitle("HungrySnake");
+        panels = new ArrayList<>();
         this.prepareView();
         this.prepareController();
     }
@@ -23,6 +29,8 @@ public class HungrySnakeGUI extends JFrame{
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         this.prepareViewMenu();
+        this.prepareViewBoard();
+        this.prepareViewColor();
     }
 
     public void prepareViewMenu(){
@@ -42,6 +50,69 @@ public class HungrySnakeGUI extends JFrame{
         menu1.add(exitOption);
     }
 
+    public void prepareViewBoard(){
+
+        JPanel north = new JPanel();
+        JPanel south = new JPanel();
+        JPanel east = new JPanel();
+        JPanel west = new JPanel();
+        JPanel center = new JPanel();
+
+        JLabel fruitsCont = new JLabel("Frutas: 0");
+        north.add(fruitsCont);
+
+        GridLayout scenary = new GridLayout(10, 10, 1, 1);
+        center.setLayout(scenary);
+        center.setBackground(Color.WHITE);
+
+        this.add(north, BorderLayout.NORTH);
+        this.add(south, BorderLayout.SOUTH);
+        this.add(east, BorderLayout.EAST);
+        this.add(west, BorderLayout.WEST);
+        this.add(center, BorderLayout.CENTER);
+
+        refresh(100, center, null);
+    }
+
+    private void refresh(int n, JPanel center, Color color){
+        if (color == null) color = new Color(0, 100, 0);
+        for (int i = 0 ; i < n ; i++){
+            JPanel cell = new JPanel();
+            cell.setBackground(color);
+            center.add(cell);
+            panels.add(cell);
+        }
+    }
+
+    public void prepareViewColor(){
+        JMenuBar menuBar = this.getJMenuBar();
+
+        JMenu menu = new JMenu("Color");
+        menuBar.add(menu);
+
+        JMenuItem menuColor = new JMenuItem("Cambiar Color Tablero");
+        menu.add(menuColor);
+    }
+
+    public void prepareControllerColor(){
+        JMenu menuBar = this.getJMenuBar().getMenu(1);
+        JMenuItem color = menuBar.getItem(0);
+
+        color.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
+                if (newColor != null) changeColorScenary(newColor);
+            }
+        });
+    }
+
+    private void changeColorScenary(Color color){
+        for (JPanel jp : panels){
+            jp.setBackground(color);
+        }
+    }
+
     public void prepareController(){
         addWindowListener(new WindowAdapter(){
           @Override 
@@ -50,6 +121,7 @@ public class HungrySnakeGUI extends JFrame{
           }
         });
         prepareControllerMenu();
+        prepareControllerColor();;
     }
 
     public void prepareControllerMenu(){
@@ -73,8 +145,15 @@ public class HungrySnakeGUI extends JFrame{
             public void actionPerformed(ActionEvent e){
                 JFileChooser selector = new JFileChooser();
                 
-                int result = selector.showOpenDialog(null);
-                
+                int result = selector.showSaveDialog(null);
+
+                //0 indica que selecciono guardar
+                if (result == 0){
+                    File fileToSave = selector.getSelectedFile();
+                    JOptionPane.showMessageDialog(null, "La funcionalidad de salvar se encuentra en construccion\n" +
+                        "Nombre del archivo: " + fileToSave.getName()
+                     );
+                }
             }
         });
 
@@ -82,22 +161,28 @@ public class HungrySnakeGUI extends JFrame{
         openOption.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e){
+                JFileChooser selector = new JFileChooser();
 
+                int result = selector.showOpenDialog(null);
+
+                //0 indica que selecciono abrir
+                if (result == 0){
+                    File selectedFile = selector.getSelectedFile();
+                    JOptionPane.showMessageDialog(null, "La funcionalidad de abrir se encuentra en construccion\n" + 
+                        "Nombre del archivo: " + selectedFile.getName()
+                    );
+                }
             }            
         });
     }
 
     private void confirm(){
         int respuesta = JOptionPane.showConfirmDialog(null, "¿Seguro que desea salir?","Confimar salida",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
-        if (respuesta == 0) System.exit(0);
+        //0 indica que pulso yes
+        if (respuesta == 0) System.exit(0); 
     }
-
-
-
     public static void main(String[] args){
         HungrySnakeGUI hungrySnake = new HungrySnakeGUI();
         hungrySnake.setVisible(true);
-
     }
-
 }
