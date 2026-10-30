@@ -2,6 +2,9 @@ package presentation;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import domain.HungrySnake;
+
 import java.util.*;
 
 import java.io.File;
@@ -9,13 +12,18 @@ import java.io.File;
 
 public class HungrySnakeGUI extends JFrame{
     ArrayList<JPanel> panels;
+    private HungrySnake game;
 
 
     public HungrySnakeGUI(){
         this.setTitle("HungrySnake");
         panels = new ArrayList<>();
+
+        game = new HungrySnake(10, 10, 1, 2);
         this.prepareView();
         this.prepareController();
+        this.updateBoardDesign();
+
     }
 
     public void prepareView(){
@@ -61,7 +69,11 @@ public class HungrySnakeGUI extends JFrame{
         JLabel fruitsCont = new JLabel("Frutas: 0");
         north.add(fruitsCont);
 
-        GridLayout scenary = new GridLayout(10, 10, 1, 1);
+        char[][] board = game.board();
+        int rows = board.length;
+        int columns = board[0].length;
+
+        GridLayout scenary = new GridLayout(rows, columns, 1, 1);
         center.setLayout(scenary);
         center.setBackground(Color.WHITE);
 
@@ -71,7 +83,7 @@ public class HungrySnakeGUI extends JFrame{
         this.add(west, BorderLayout.WEST);
         this.add(center, BorderLayout.CENTER);
 
-        refresh(100, center, null);
+        refresh(rows * columns, center, null);
     }
 
     private void refresh(int n, JPanel center, Color color){
@@ -121,7 +133,8 @@ public class HungrySnakeGUI extends JFrame{
           }
         });
         prepareControllerMenu();
-        prepareControllerColor();;
+        prepareControllerColor();
+        prepareControllerGame();
     }
 
     public void prepareControllerMenu(){
@@ -174,6 +187,70 @@ public class HungrySnakeGUI extends JFrame{
                 }
             }            
         });
+    }
+
+    public void prepareControllerGame(){
+            addKeyListener(new KeyAdapter() {
+                @Override 
+                public void keyPressed(KeyEvent e){
+                    char direction = ' ';
+                    int key = e.getKeyCode();
+
+                    switch (key) {
+                        case 87:
+                            direction = 'N';
+                            break;
+                        case 65:
+                            direction = 'W';
+                            break;
+                        case 83:
+                            direction = 'S';
+                            break;
+                        case 68:
+                            direction = 'E';
+                            break;
+                    }
+                    if (direction != ' '){
+                        boolean moved = game.move(direction);
+                        if (moved) updateBoardDesign();
+                    }
+                }
+            });
+            
+        }
+
+    public void updateBoardDesign(){
+        char[][] board = game.board();
+        int posCell = 0;
+        
+        for (int i = 0; i < board.length; i++){
+            for (int j = 0; j < board[i].length; j++){
+                JPanel cell = panels.get(posCell);
+                char element = board[i][j];
+                //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+                switch (element){
+                    case '0':
+                        cell.setBackground(new Color(0, 100, 0));
+                        break;
+                    case '1':
+                        cell.setBackground(Color.GREEN);
+                        break;
+                    case '2':
+                        cell.setBackground(Color.RED);
+                        break;
+                    case '3':
+                        cell.setBackground(Color.BLACK);
+                        break;
+                    case '4':
+                        cell.setBackground(Color.BLUE);
+                        break;
+                    case '5':
+                        cell.setBackground(Color.ORANGE);
+                        break;
+                }
+                posCell++;
+            }
+        }
     }
 
     private void confirm(){
