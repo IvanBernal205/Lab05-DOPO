@@ -11,7 +11,8 @@ public class HungrySnakeGUI extends JFrame{
     ArrayList<JPanel> panels;
     private HungrySnake game;
     //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Borde
-    private Color grass;
+    private Color lightGrass;
+    private Color darkGrass;
     private Color snake;
     private Color fruits;
     private Color obstacles;
@@ -19,13 +20,17 @@ public class HungrySnakeGUI extends JFrame{
     private final Color border = Color.ORANGE;
     private boolean isGameOver = false;
 
+    JPanel north;
+    private JLabel fruitsCont;
+
 
     public HungrySnakeGUI(){
         this.setTitle("HungrySnake");
         panels = new ArrayList<>();
 
         game = new HungrySnake(25, 25, 1, 2);
-        grass = new Color(0, 100, 0);  
+        lightGrass = new Color(170, 215, 81);  
+        darkGrass  = new Color(162, 209, 73);   
         snake = Color.GREEN;    
         fruits = Color.RED;   
         obstacles = Color.BLACK;
@@ -41,7 +46,7 @@ public class HungrySnakeGUI extends JFrame{
         int width = pantalla.width;
         int height = pantalla.height;
         //tamaño
-        Dimension SIZE = new Dimension(width/2, height/2);
+        Dimension SIZE = new Dimension((int)(height/1.3), (int)(height/1.3));
         this.setSize(SIZE);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -70,20 +75,20 @@ public class HungrySnakeGUI extends JFrame{
 
     private void prepareViewBoard(){
 
-        JPanel north = new JPanel();
+        north = new JPanel();
         JPanel south = new JPanel();
         JPanel east = new JPanel();
         JPanel west = new JPanel();
         JPanel center = new JPanel();
 
-        JLabel fruitsCont = new JLabel("Frutas: 0");
+        fruitsCont = new JLabel("Longitud Serpiente: " + game.size());
         north.add(fruitsCont);
 
         char[][] board = game.board();
         int rows = board.length;
         int columns = board[0].length;
 
-        GridLayout scenary = new GridLayout(rows, columns, 1, 1); // TODO:Poner los colores intercalados para evitar poner margen
+        GridLayout scenary = new GridLayout(rows, columns, 0, 0);
         center.setLayout(scenary);
         center.setBackground(Color.WHITE);
 
@@ -98,7 +103,7 @@ public class HungrySnakeGUI extends JFrame{
     }
 
     private void createScenaryCells(int numBoxes, JPanel centerPanel, Color color){
-        if (color == null) color = grass;
+        if (color == null) color = lightGrass;
         for (int i = 0; i < numBoxes; i++){
             JPanel cell = new JPanel();
             cell.setBackground(color);
@@ -165,7 +170,7 @@ public class HungrySnakeGUI extends JFrame{
             public void actionPerformed(ActionEvent e){
                 Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
                 if (newColor != null) {
-                    grass = newColor;
+                    lightGrass = newColor;
                     updateBoardDesign();
                 }
             }
@@ -275,7 +280,7 @@ public class HungrySnakeGUI extends JFrame{
                 //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Borde
                 switch (element){
                     case '0':
-                        cell.setBackground(grass); 
+                        cell.setBackground(lightGrass); 
                         break;
                     case '1':
                         cell.setBackground(snake);
@@ -292,10 +297,13 @@ public class HungrySnakeGUI extends JFrame{
                     case '5':
                         cell.setBackground(border);
                         break;
+                    case '6':
+                        cell.setBackground(darkGrass);
                 }
                 posCell++;
             }
         }
+        fruitsCont.setText("Longitud Serpiente: " + game.size());
     }
 
     private void confirm(){

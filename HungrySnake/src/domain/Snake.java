@@ -16,11 +16,11 @@ public class Snake {
     }
     
     public int[] getHead(){
-        return snake.get(0);
+        return snake.get(0).clone();
     }
 
     public int[] getTail(){
-        return snake.get(snake.size() - 1);
+        return snake.get(snake.size() - 1).clone();
     }
 
     public ArrayList<int []> getBody(){
@@ -29,8 +29,8 @@ public class Snake {
         return body;
     }
 
-    public void move(int row, int column, boolean grow){
+    public void move(int row, int column, boolean hasEaten){
         snake.add(0, new int[] {row, column});
-        if (!grow) snake.remove(snake.size() - 1);
+        if (!hasEaten) snake.remove(snake.size() - 1);
     }
 }
