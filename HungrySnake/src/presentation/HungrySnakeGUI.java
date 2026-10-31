@@ -1,18 +1,23 @@
 package presentation;
+import domain.HungrySnake;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
-import domain.HungrySnake;
-
 import java.util.*;
-
 import java.io.File;
 
 
 public class HungrySnakeGUI extends JFrame{
     ArrayList<JPanel> panels;
     private HungrySnake game;
+    //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+    private Color grass;
+    private Color snake;
+    private Color fruits;
+    private Color obstacles;
+    private Color head;
+    private final Color limit = Color.ORANGE;
+    private boolean isGameOver = false;
 
 
     public HungrySnakeGUI(){
@@ -20,9 +25,15 @@ public class HungrySnakeGUI extends JFrame{
         panels = new ArrayList<>();
 
         game = new HungrySnake(10, 10, 1, 2);
+        grass = new Color(0, 100, 0);  
+        snake = Color.GREEN;    
+        fruits = Color.RED;   
+        obstacles = Color.BLACK;
+        head = Color.BLUE;       
         this.prepareView();
         this.prepareController();
         this.updateBoardDesign();
+        
 
     }
 
@@ -83,10 +94,10 @@ public class HungrySnakeGUI extends JFrame{
         this.add(west, BorderLayout.WEST);
         this.add(center, BorderLayout.CENTER);
 
-        refresh(rows * columns, center, null);
+        createScenaryCells(rows * columns, center, null);
     }
 
-    private void refresh(int n, JPanel center, Color color){
+    private void createScenaryCells(int n, JPanel center, Color color){
         if (color == null) color = new Color(0, 100, 0);
         for (int i = 0 ; i < n ; i++){
             JPanel cell = new JPanel();
@@ -96,34 +107,110 @@ public class HungrySnakeGUI extends JFrame{
         }
     }
 
+    private void refresh(){
+        game = new HungrySnake(10, 10, 1, 2);
+        isGameOver = false;
+        updateBoardDesign();
+    }
+
     public void prepareViewColor(){
         JMenuBar menuBar = this.getJMenuBar();
-
-        JMenu menu = new JMenu("Color");
+        //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+        JMenu menu = new JMenu("Configuracion");
         menuBar.add(menu);
 
-        JMenuItem menuColor = new JMenuItem("Cambiar Color Tablero");
-        menu.add(menuColor);
+        JMenuItem menuColorGrass = new JMenuItem("Color Tablero");
+        menu.add(menuColorGrass);
+
+        JMenuItem menuColorSnake = new JMenuItem("Color de Snake");
+        menu.add(menuColorSnake);
+
+        JMenuItem menuColorFruits = new JMenuItem("Color de las Frutas");
+        menu.add(menuColorFruits);
+
+        JMenuItem menuColorObstacles = new JMenuItem("Color de los Obstaculos");
+        menu.add(menuColorObstacles);
+
+        JMenuItem menuColorHead = new JMenuItem("Color de la cabeza");
+        menu.add(menuColorHead);
+
+        JMenuItem refresh = new JMenuItem("Refrescar");
+        menu.add(refresh);
     }
 
     public void prepareControllerColor(){
         JMenu menuBar = this.getJMenuBar().getMenu(1);
-        JMenuItem color = menuBar.getItem(0);
 
-        color.addActionListener(new ActionListener() {
+        JMenuItem grassColor = menuBar.getItem(0);
+        JMenuItem snakeColor = menuBar.getItem(1);
+        JMenuItem fruitsColor = menuBar.getItem(2);
+        JMenuItem obstaclesColor = menuBar.getItem(3);
+        JMenuItem headColor = menuBar.getItem(4);
+        JMenuItem refresh = menuBar.getItem(5);
+
+        grassColor.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e){
                 Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
-                if (newColor != null) changeColorScenary(newColor);
+                if (newColor != null) {
+                    grass = newColor;
+                    updateBoardDesign();
+                }
             }
         });
+
+        snakeColor.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
+                if (newColor != null) {
+                    snake = newColor;
+                    updateBoardDesign();
+                }
+            }
+        });
+
+        fruitsColor.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
+                if (newColor != null) {
+                    fruits = newColor;
+                    updateBoardDesign();
+                }
+            }
+        });
+
+        obstaclesColor.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
+                if (newColor != null) {
+                    obstacles = newColor;
+                    updateBoardDesign();
+                }
+            }
+        });
+
+        headColor.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
+                if (newColor != null) {
+                    head = newColor;
+                    updateBoardDesign();
+                }
+            }
+        });
+
+        refresh.addActionListener(new ActionListener() {
+            @Override 
+            public void actionPerformed(ActionEvent e){
+                refresh();
+                }
+            });
     }
 
-    private void changeColorScenary(Color color){
-        for (JPanel jp : panels){
-            jp.setBackground(color);
-        }
-    }
 
     public void prepareController(){
         addWindowListener(new WindowAdapter(){
@@ -193,6 +280,10 @@ public class HungrySnakeGUI extends JFrame{
             addKeyListener(new KeyAdapter() {
                 @Override 
                 public void keyPressed(KeyEvent e){
+                    if (isGameOver){
+                        JOptionPane.showMessageDialog(null, "Ya perdiste, no te puedes mover");
+                        return;
+                    }
                     char direction = ' ';
                     int key = e.getKeyCode();
 
@@ -211,13 +302,13 @@ public class HungrySnakeGUI extends JFrame{
                             break;
                     }
                     if (direction != ' '){
-                        boolean moved = game.move(direction);
-                        if (moved) updateBoardDesign();
+                        isGameOver = !game.move(direction);
+                        if (!isGameOver) updateBoardDesign();
+                        else JOptionPane.showMessageDialog(null, "Perdiste");
                     }
                 }
-            });
-            
-        }
+        });
+    }
 
     public void updateBoardDesign(){
         char[][] board = game.board();
@@ -230,22 +321,22 @@ public class HungrySnakeGUI extends JFrame{
                 //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
                 switch (element){
                     case '0':
-                        cell.setBackground(new Color(0, 100, 0));
+                        cell.setBackground(grass); 
                         break;
                     case '1':
-                        cell.setBackground(Color.GREEN);
+                        cell.setBackground(snake);
                         break;
                     case '2':
-                        cell.setBackground(Color.RED);
+                        cell.setBackground(fruits);
                         break;
                     case '3':
-                        cell.setBackground(Color.BLACK);
+                        cell.setBackground(obstacles);
                         break;
                     case '4':
-                        cell.setBackground(Color.BLUE);
+                        cell.setBackground(head);
                         break;
                     case '5':
-                        cell.setBackground(Color.ORANGE);
+                        cell.setBackground(limit);
                         break;
                 }
                 posCell++;

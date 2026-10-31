@@ -1,23 +1,14 @@
 package domain;
 
 public class HungrySnake {
-    private int rows;
-    private int columns;
-    private int obstacle;
-    private int fruits;
 
     private Board board;
     private Snake snake;
     
     //1
     public HungrySnake(int rows, int columns, int fruits, int obstacle){
-        this.rows = rows;
-        this.columns = columns;
-        this.obstacle = obstacle;
-        this.fruits = fruits;
         this.board = new Board(rows, columns, fruits, obstacle, 'N'); //Revisar la direccion
         this.snake = board.getSnake();
-
     }
 
     //2
@@ -45,7 +36,10 @@ public class HungrySnake {
         boolean[] conditionsToMove = board.checkColission(finalPos[0], finalPos[1]);
 
         if (conditionsToMove[0]){
+            int[] oldHead = snake.getHead();
+            int[] oldTail = snake.getTail();
             snake.move(finalPos[0], finalPos[1], conditionsToMove[1]);
+            board.updateSnake(oldHead, oldTail, conditionsToMove[1]);
             if (conditionsToMove[1]) board.addFruit();
             return true;
         }

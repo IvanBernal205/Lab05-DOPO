@@ -3,14 +3,12 @@ import java.util.*;
 
 public class Snake {
     private ArrayList<int[]> snake; //[0] es la posicion de la cabeza
-    private char direction;
 
 
     public Snake(int rows, int columns, char direction){
         //La serpiente se ubicara siempre en el centro al iniciar
         snake = new ArrayList<>();
         snake.add(new int[] {rows/2, columns/2});
-        this.direction = direction;
     }
 
     public int getSize(){
@@ -19,6 +17,10 @@ public class Snake {
     
     public int[] getHead(){
         return snake.get(0);
+    }
+
+    public int[] getTail(){
+        return snake.get(snake.size() - 1);
     }
 
     public ArrayList<int []> getBody(){
@@ -31,9 +33,4 @@ public class Snake {
         snake.add(0, new int[] {row, column});
         if (!grow) snake.remove(snake.size() - 1);
     }
-
-    public void setDirection(char direction){
-        this.direction = direction;
-    }
-
 }

@@ -16,13 +16,14 @@ public class Board {
         checkCorrectElements(fruits, obstacles);
 
         this.board = new char[this.rows + 2][this.columns + 2];
-        for (int i = 0 ; i < rows + 2 ; i++){
-            for (int j = 0; j<columns + 2; j++){
-                if (i == 0 || j == 0 || i == rows + 1 || j == columns + 1) board[i][j] = '5';
+        for (int i = 0 ; i < this.rows + 2 ; i++){
+            for (int j = 0; j<this.columns + 2; j++){
+                if (i == 0 || j == 0 || i == this.rows + 1 || j == this.columns + 1) board[i][j] = '5';
                 else board[i][j] = '0';
             }
         }
         this.snake = new Snake(this.rows, this.columns, direction); //Revisar la direccion
+        placeHead(this.rows, this.columns);
 
         for (int i = 0 ; i < obstacles; i++){
             addObstacles();
@@ -31,8 +32,6 @@ public class Board {
         for (int i = 0 ; i < fruits; i++){
             addFruit();
         }
-        placeHead(this.rows, this.columns);
-
     }
 
 
@@ -73,8 +72,8 @@ public class Board {
     }
 
     private void checkCorrectElements(int fruits, int obstacles){
-        int totalSize = rows * columns;
-        if (fruits >= totalSize || obstacles >= totalSize){
+        int totalSize = rows * columns - 2;
+        if (fruits + obstacles >= totalSize){
             this.fruits = totalSize / 2;
             this.obstacles = totalSize / 2;
         }
@@ -109,6 +108,13 @@ public class Board {
         return new boolean[] {correctToMove, grow};
     }
 
+    public void updateSnake(int[] oldHead, int[] oldTail, boolean grow){
+        if (!grow) board[oldTail[0]][oldTail[1]] = '0';
+        if (snake.getSize() > 1) board[oldHead[0]][oldHead[1]] = '1';
+        int[] head = snake.getHead();
+        board[head[0]][head[1]] = '4';
+    }
+
     private  char checkElement(int row, int column){
         return board[row][column];
     }
@@ -122,6 +128,6 @@ public class Board {
     }
 
     private void placeHead(int row, int column){
-        board[row/2][row/2] = '4';
+        board[row/2][column/2] = '4';
     }
 }
