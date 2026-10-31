@@ -134,6 +134,7 @@ public class Board {
     }
 
     private boolean isNeckCollision(int newRowPosition, int newColumnPosition){
+        if (snake.getBody().isEmpty()) return false; //Sin cuerpo no hay cuello con el cual chocar
         int neckPositionRow = snake.getBody().get(0)[0];
         int neckPositionCol = snake.getBody().get(0)[1];
         if(newRowPosition == neckPositionRow && newColumnPosition == neckPositionCol) return true;
