@@ -22,6 +22,7 @@ public class HungrySnakeGUI extends JFrame{
 
     JPanel north;
     private JLabel fruitsCont;
+    private JMenuItem pauseOption;
 
 
     public HungrySnakeGUI(){
@@ -141,6 +142,15 @@ public class HungrySnakeGUI extends JFrame{
 
         JMenuItem refresh = new JMenuItem("Refrescar");
         menu.add(refresh);
+
+        pauseOption = new JMenuItem("Pausa");
+        JPanel pausePanel = new JPanel(new BorderLayout());
+        pausePanel.setOpaque(false);
+        pausePanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 1, 3));
+        pausePanel.add(pauseOption);
+        pausePanel.setMaximumSize(pausePanel.getPreferredSize()); 
+        menuBar.add(Box.createHorizontalGlue());
+        menuBar.add(pausePanel);
     }
 
     public void prepareController(){
@@ -267,6 +277,13 @@ public class HungrySnakeGUI extends JFrame{
                 keyBoardEvent(e);
             }
         });
+
+        pauseOption.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                pause();
+            }
+        });
     }
 
     public void updateBoardDesign(){
@@ -309,7 +326,16 @@ public class HungrySnakeGUI extends JFrame{
     private void confirm(){
         int respuesta = JOptionPane.showConfirmDialog(null, "¿Seguro que desea salir?","Confimar salida",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
         //0 indica que pulso yes
-        if (respuesta == 0) System.exit(0); 
+        if (respuesta == 0) System.exit(0);
+    }
+
+    private void pause(){
+        String[] options = {"Reanudar", "Reiniciar", "Salir"};
+        int respuesta = JOptionPane.showOptionDialog(this, "Juego en pausa", "Pausa", JOptionPane.DEFAULT_OPTION,
+            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        //Reanudar (0) o cerrar el dialogo solo vuelve al juego
+        if (respuesta == 1) refresh();
+        else if (respuesta == 2) confirm();
     }
 
     private void funcUnderConstruction(String funcName){
@@ -326,6 +352,10 @@ public class HungrySnakeGUI extends JFrame{
     }
 
     private void keyBoardEvent(KeyEvent e){
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            pause();
+            return;
+        }
         if (isGameOver){
             JOptionPane.showMessageDialog(null, "Ya perdiste, no te puedes mover");
             return;
