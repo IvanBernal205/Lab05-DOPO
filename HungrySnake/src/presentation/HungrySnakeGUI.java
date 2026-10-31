@@ -3,6 +3,7 @@ import domain.HungrySnake;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.util.*;
 import java.io.File;
 
@@ -10,29 +11,43 @@ import java.io.File;
 public class HungrySnakeGUI extends JFrame{
     ArrayList<JPanel> panels;
     private HungrySnake game;
-    //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
-    private Color grass;
+    //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Borde
+    private Color lightGrass;
+    private Color darkGrass;
     private Color snake;
     private Color fruits;
     private Color obstacles;
     private Color head;
-    private final Color limit = Color.ORANGE;
+    private final Color border = Color.ORANGE;
     private boolean isGameOver = false;
+    private static final int MIN_BOARD_SIZE = 5;
+    private static final int MAX_BOARD_SIZE = 50;
+    private int boardSize = 25;
+
+    JPanel north;
+    private JPanel center;
+    private JLabel fruitsCont;
+    private JMenuItem pauseOption;
+    private JTextField boardSizeInput;
+    private JButton acceptSizeButton;
+    private JButton cancelSizeButton;
+    private JOptionPane boardSizePane;
+    private JDialog boardSizeDialog;
 
 
     public HungrySnakeGUI(){
         this.setTitle("HungrySnake");
         panels = new ArrayList<>();
 
-        game = new HungrySnake(10, 10, 1, 2);
-        grass = new Color(0, 100, 0);  
+        game = new HungrySnake(boardSize, boardSize, 1, 2);
+        lightGrass = new Color(170, 215, 81);  
+        darkGrass  = new Color(162, 209, 73);   
         snake = Color.GREEN;    
         fruits = Color.RED;   
         obstacles = Color.BLACK;
         head = Color.BLUE;       
         this.prepareView();
         this.prepareController();
-        this.updateBoardDesign();
         
 
     }
@@ -42,17 +57,18 @@ public class HungrySnakeGUI extends JFrame{
         int width = pantalla.width;
         int height = pantalla.height;
         //tamaño
-        Dimension SIZE = new Dimension(width/2, height/2);
+        Dimension SIZE = new Dimension((int)(height/1.3), (int)(height/1.3));
         this.setSize(SIZE);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         this.prepareViewMenu();
+        this.prepareViewConfigurations();
         this.prepareViewBoard();
-        this.prepareViewColor();
+        this.prepareViewBoardSize();
     }
 
-    public void prepareViewMenu(){
+    private void prepareViewMenu(){
         JMenuBar menuBar = new JMenuBar();
         this.setJMenuBar(menuBar);
         JMenu menu1 = new JMenu("Archivo");
@@ -69,23 +85,17 @@ public class HungrySnakeGUI extends JFrame{
         menu1.add(exitOption);
     }
 
-    public void prepareViewBoard(){
+    private void prepareViewBoard(){
 
-        JPanel north = new JPanel();
+        north = new JPanel();
         JPanel south = new JPanel();
         JPanel east = new JPanel();
         JPanel west = new JPanel();
-        JPanel center = new JPanel();
+        center = new JPanel();
 
-        JLabel fruitsCont = new JLabel("Frutas: 0");
+        fruitsCont = new JLabel("Longitud Serpiente: " + game.size());
         north.add(fruitsCont);
 
-        char[][] board = game.board();
-        int rows = board.length;
-        int columns = board[0].length;
-
-        GridLayout scenary = new GridLayout(rows, columns, 1, 1);
-        center.setLayout(scenary);
         center.setBackground(Color.WHITE);
 
         this.add(north, BorderLayout.NORTH);
@@ -94,28 +104,78 @@ public class HungrySnakeGUI extends JFrame{
         this.add(west, BorderLayout.WEST);
         this.add(center, BorderLayout.CENTER);
 
+        prepareBoardCells();
+        this.updateBoardDesign();
+    }
+
+    private void prepareBoardCells(){
+        char[][] board = game.board();
+        int rows = board.length;
+        int columns = board[0].length;
+
+        GridLayout scenary = new GridLayout(rows, columns, 0, 0);
+        center.setLayout(scenary);
         createScenaryCells(rows * columns, center, null);
     }
 
-    private void createScenaryCells(int n, JPanel center, Color color){
-        if (color == null) color = new Color(0, 100, 0);
-        for (int i = 0 ; i < n ; i++){
+    private void createScenaryCells(int numBoxes, JPanel centerPanel, Color color){
+        if (color == null) color = lightGrass;
+        for (int i = 0; i < numBoxes; i++){
             JPanel cell = new JPanel();
             cell.setBackground(color);
-            center.add(cell);
+            centerPanel.add(cell);
             panels.add(cell);
         }
     }
 
     private void refresh(){
-        game = new HungrySnake(10, 10, 1, 2);
+        game = new HungrySnake(boardSize, boardSize, 1, 2);
         isGameOver = false;
+        center.removeAll();
+        panels.clear();
+        prepareBoardCells();
         updateBoardDesign();
+        center.revalidate();
+        center.repaint();
     }
 
-    public void prepareViewColor(){
+    private void prepareViewBoardSize(){
+        boardSizeInput = new JTextField(String.valueOf(boardSize), 5);
+        acceptSizeButton = new JButton("Aceptar");
+        cancelSizeButton = new JButton("Cancelar");
+
+        JPanel form = new JPanel();
+        form.add(new JLabel("Tamaño N del tablero NxN (" + MIN_BOARD_SIZE + " a " + MAX_BOARD_SIZE + "):"));
+        form.add(boardSizeInput);
+
+        boardSizePane = new JOptionPane(form, JOptionPane.PLAIN_MESSAGE, JOptionPane.DEFAULT_OPTION, null,
+            new Object[] {acceptSizeButton, cancelSizeButton}, acceptSizeButton);
+        boardSizeDialog = boardSizePane.createDialog(this, "Tamaño del tablero");
+    }
+
+    private void changeBoardSize(){
+        boardSizeInput.setText(String.valueOf(boardSize));
+        boardSizeDialog.setLocationRelativeTo(this);
+        boardSizeDialog.setVisible(true);
+
+        if (boardSizePane.getValue() == acceptSizeButton){
+            boardSize = Integer.parseInt(boardSizeInput.getText().trim());
+            refresh();
+        }
+    }
+
+    private boolean isValidBoardSize(String text){
+        try {
+            int size = Integer.parseInt(text.trim());
+            return size >= MIN_BOARD_SIZE && size <= MAX_BOARD_SIZE;
+        } catch (NumberFormatException e){
+            return false;
+        }
+    }
+
+    private void prepareViewConfigurations(){
         JMenuBar menuBar = this.getJMenuBar();
-        //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+        //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Borde
         JMenu menu = new JMenu("Configuracion");
         menuBar.add(menu);
 
@@ -134,8 +194,33 @@ public class HungrySnakeGUI extends JFrame{
         JMenuItem menuColorHead = new JMenuItem("Color de la cabeza");
         menu.add(menuColorHead);
 
+        JMenuItem menuBoardSize = new JMenuItem("Tamaño del Tablero");
+        menu.add(menuBoardSize);
+
         JMenuItem refresh = new JMenuItem("Refrescar");
         menu.add(refresh);
+
+        pauseOption = new JMenuItem("Pausa");
+        JPanel pausePanel = new JPanel(new BorderLayout());
+        pausePanel.setOpaque(false);
+        pausePanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 1, 3));
+        pausePanel.add(pauseOption);
+        pausePanel.setMaximumSize(pausePanel.getPreferredSize()); 
+        menuBar.add(Box.createHorizontalGlue());
+        menuBar.add(pausePanel);
+    }
+
+    public void prepareController(){
+        addWindowListener(new WindowAdapter(){
+            @Override 
+            public void windowClosing(WindowEvent e){
+                confirm();
+            }
+        });
+        prepareControllerMenu();
+        prepareControllerColor();
+        prepareControllerBoardSize();
+        prepareControllerGame();
     }
 
     public void prepareControllerColor(){
@@ -146,14 +231,14 @@ public class HungrySnakeGUI extends JFrame{
         JMenuItem fruitsColor = menuBar.getItem(2);
         JMenuItem obstaclesColor = menuBar.getItem(3);
         JMenuItem headColor = menuBar.getItem(4);
-        JMenuItem refresh = menuBar.getItem(5);
+        JMenuItem refresh = menuBar.getItem(6);
 
         grassColor.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e){
                 Color newColor = JColorChooser.showDialog(null, "Seleccione el color", null);
                 if (newColor != null) {
-                    grass = newColor;
+                    lightGrass = newColor;
                     updateBoardDesign();
                 }
             }
@@ -207,21 +292,51 @@ public class HungrySnakeGUI extends JFrame{
             @Override 
             public void actionPerformed(ActionEvent e){
                 refresh();
-                }
-            });
+            }
+        });
     }
 
+    public void prepareControllerBoardSize(){
+        JMenuItem boardSizeOption = this.getJMenuBar().getMenu(1).getItem(5);
 
-    public void prepareController(){
-        addWindowListener(new WindowAdapter(){
-          @Override 
-          public void windowClosing(WindowEvent e){
-            confirm();
-          }
+        boardSizeOption.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                changeBoardSize();
+            }
         });
-        prepareControllerMenu();
-        prepareControllerColor();
-        prepareControllerGame();
+
+        //Aceptar solo queda activo mientras el valor escrito sea valido
+        boardSizeInput.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e){
+                acceptSizeButton.setEnabled(isValidBoardSize(boardSizeInput.getText()));
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e){
+                acceptSizeButton.setEnabled(isValidBoardSize(boardSizeInput.getText()));
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e){
+                acceptSizeButton.setEnabled(isValidBoardSize(boardSizeInput.getText()));
+            }
+        });
+
+        acceptSizeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                boardSizePane.setValue(acceptSizeButton);
+            }
+        });
+
+        cancelSizeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                boardSizePane.setValue(cancelSizeButton);
+            }
+        });
     }
 
     public void prepareControllerMenu(){
@@ -243,17 +358,7 @@ public class HungrySnakeGUI extends JFrame{
         saveOption.addActionListener(new ActionListener(){
             @Override 
             public void actionPerformed(ActionEvent e){
-                JFileChooser selector = new JFileChooser();
-                
-                int result = selector.showSaveDialog(null);
-
-                //0 indica que selecciono guardar
-                if (result == 0){
-                    File fileToSave = selector.getSelectedFile();
-                    JOptionPane.showMessageDialog(null, "La funcionalidad de salvar se encuentra en construccion\n" +
-                        "Nombre del archivo: " + fileToSave.getName()
-                     );
-                }
+                funcUnderConstruction("Salvar");
             }
         });
 
@@ -261,52 +366,24 @@ public class HungrySnakeGUI extends JFrame{
         openOption.addActionListener(new ActionListener() {
             @Override 
             public void actionPerformed(ActionEvent e){
-                JFileChooser selector = new JFileChooser();
-
-                int result = selector.showOpenDialog(null);
-
-                //0 indica que selecciono abrir
-                if (result == 0){
-                    File selectedFile = selector.getSelectedFile();
-                    JOptionPane.showMessageDialog(null, "La funcionalidad de abrir se encuentra en construccion\n" + 
-                        "Nombre del archivo: " + selectedFile.getName()
-                    );
-                }
+                funcUnderConstruction("Abrir");
             }            
         });
     }
 
     public void prepareControllerGame(){
-            addKeyListener(new KeyAdapter() {
-                @Override 
-                public void keyPressed(KeyEvent e){
-                    if (isGameOver){
-                        JOptionPane.showMessageDialog(null, "Ya perdiste, no te puedes mover");
-                        return;
-                    }
-                    char direction = ' ';
-                    int key = e.getKeyCode();
+        addKeyListener(new KeyAdapter() {
+            @Override 
+            public void keyPressed(KeyEvent e){
+                keyBoardEvent(e);
+            }
+        });
 
-                    switch (key) {
-                        case 87:
-                            direction = 'N';
-                            break;
-                        case 65:
-                            direction = 'W';
-                            break;
-                        case 83:
-                            direction = 'S';
-                            break;
-                        case 68:
-                            direction = 'E';
-                            break;
-                    }
-                    if (direction != ' '){
-                        isGameOver = !game.move(direction);
-                        if (!isGameOver) updateBoardDesign();
-                        else JOptionPane.showMessageDialog(null, "Perdiste");
-                    }
-                }
+        pauseOption.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                pause();
+            }
         });
     }
 
@@ -315,13 +392,13 @@ public class HungrySnakeGUI extends JFrame{
         int posCell = 0;
         
         for (int i = 0; i < board.length; i++){
-            for (int j = 0; j < board[i].length; j++){
+            for (int j = 0; j < board[0].length; j++){
                 JPanel cell = panels.get(posCell);
                 char element = board[i][j];
-                //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+                //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Borde
                 switch (element){
                     case '0':
-                        cell.setBackground(grass); 
+                        cell.setBackground(lightGrass); 
                         break;
                     case '1':
                         cell.setBackground(snake);
@@ -336,19 +413,78 @@ public class HungrySnakeGUI extends JFrame{
                         cell.setBackground(head);
                         break;
                     case '5':
-                        cell.setBackground(limit);
+                        cell.setBackground(border);
                         break;
+                    case '6':
+                        cell.setBackground(darkGrass);
                 }
                 posCell++;
             }
         }
+        fruitsCont.setText("Longitud Serpiente: " + game.size());
     }
 
     private void confirm(){
         int respuesta = JOptionPane.showConfirmDialog(null, "¿Seguro que desea salir?","Confimar salida",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE);
         //0 indica que pulso yes
-        if (respuesta == 0) System.exit(0); 
+        if (respuesta == 0) System.exit(0);
     }
+
+    private void pause(){
+        String[] options = {"Reanudar", "Reiniciar", "Salir"};
+        int respuesta = JOptionPane.showOptionDialog(this, "Juego en pausa", "Pausa", JOptionPane.DEFAULT_OPTION,
+            JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+        //Reanudar (0) o cerrar el dialogo solo vuelve al juego
+        if (respuesta == 1) refresh();
+        else if (respuesta == 2) confirm();
+    }
+
+    private void funcUnderConstruction(String funcName){
+        JFileChooser selector = new JFileChooser();
+                
+        int result = selector.showSaveDialog(null);
+
+        //0 indica que selecciono guardar/abrir
+        if (result == 0){
+            File fileToSave = selector.getSelectedFile();
+            JOptionPane.showMessageDialog(null, "La funcionalidad " + funcName +" se encuentra en construccion\n" +
+                "Nombre del archivo: " + fileToSave.getName());
+        }
+    }
+
+    private void keyBoardEvent(KeyEvent e){
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            pause();
+            return;
+        }
+        if (isGameOver){
+            JOptionPane.showMessageDialog(null, "Ya perdiste, no te puedes mover");
+            return;
+        }
+        char direction = ' ';
+        int key = e.getKeyCode();
+
+        switch (key) {
+            case 87:
+                direction = 'N';
+                break;
+            case 65:
+                direction = 'W';
+                break;
+            case 83:
+                direction = 'S';
+                break;
+            case 68:
+                direction = 'E';
+                break;
+        }
+        if (direction != ' '){
+            isGameOver = !game.move(direction);
+            if (!isGameOver) updateBoardDesign();
+            else JOptionPane.showMessageDialog(null, "Perdiste");
+        }
+    }
+
     public static void main(String[] args){
         HungrySnakeGUI hungrySnake = new HungrySnakeGUI();
         hungrySnake.setVisible(true);

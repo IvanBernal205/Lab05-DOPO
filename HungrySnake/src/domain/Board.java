@@ -9,54 +9,47 @@ public class Board {
     private int obstacles;
 
     private Snake snake;
+    private static final Random random = new Random();
 
     //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
     public Board(int rows, int columns, int fruits, int obstacles, char direction){
         checkCorrectSize(rows, columns);
         checkCorrectElements(fruits, obstacles);
 
-        this.board = new char[this.rows + 2][this.columns + 2];
-        for (int i = 0 ; i < this.rows + 2 ; i++){
-            for (int j = 0; j<this.columns + 2; j++){
-                if (i == 0 || j == 0 || i == this.rows + 1 || j == this.columns + 1) board[i][j] = '5';
-                else board[i][j] = '0';
-            }
-        }
-        this.snake = new Snake(this.rows, this.columns, direction); //Revisar la direccion
-        placeHead(this.rows, this.columns);
+        board = new char[this.rows + 2][this.columns + 2];
+        createEmptyBoard();
+        
+        createSnake(this.rows, this.columns, direction);
 
-        for (int i = 0 ; i < obstacles; i++){
-            addObstacles();
-        }
-
-        for (int i = 0 ; i < fruits; i++){
-            addFruit();
-        }
+        addObstacles();
+        addFruit(this.fruits);
     }
 
 
-    public void addFruit(){
-        Random rand = new Random();
-
+    public void addFruit(int numOfFruits){
         int rowRand; 
         int columnRand;
-        do {
-            rowRand = rand.nextInt(board.length - 2) + 1;
-            columnRand = rand.nextInt(board[0].length - 2) + 1;
-        } while (board[rowRand][columnRand] != '0');
-        board[rowRand][columnRand] = '2';
+        for (int i = 0 ; i < numOfFruits; i++){
+            do {
+                rowRand = randomNum(1, rows);
+                columnRand = randomNum(1, columns);
+            } while (board[rowRand][columnRand] != '0');
+            
+            board[rowRand][columnRand] = '2'; // número de las frutas
+        }
     }
 
     private void addObstacles(){
-        Random rand = new Random();
-
         int rowRand; 
         int columnRand;
-        do {
-            rowRand = rand.nextInt(board.length - 2) + 1;
-            columnRand = rand.nextInt(board[0].length - 2) + 1;
-        } while (board[rowRand][columnRand] != '0');
-        board[rowRand][columnRand] = '3';
+        for (int i = 0 ; i < this.obstacles; i++){
+            do {
+                rowRand = randomNum(1, rows);
+                columnRand = randomNum(1, columns);
+            } while (board[rowRand][columnRand] != '0');
+            
+            board[rowRand][columnRand] = '3'; // número de las obstaculos
+        }
     }
 
     private void checkCorrectSize(int rows, int columns){
@@ -71,6 +64,7 @@ public class Board {
         }
     }
 
+    //TODO: Revisar logica
     private void checkCorrectElements(int fruits, int obstacles){
         int totalSize = rows * columns - 2;
         if (fruits + obstacles >= totalSize){
@@ -83,33 +77,45 @@ public class Board {
         }
     }
 
+    private void createEmptyBoard(){
+        for (int i = 0 ; i < this.rows + 2 ; i++){
+            for (int j = 0; j<this.columns + 2; j++){
+                if (i == 0 || j == 0 || i == this.rows + 1 || j == this.columns + 1) board[i][j] = '5';
+                else board[i][j] = grassAt(i, j);
+            }
+        }
+    }
+
+    private char grassAt(int row, int column){
+        return (row + column) % 2 == 0 ? '6' : '0';
+    }
+
     public boolean[] checkColission(int row, int column){
         char element = checkElement(row, column);
-        boolean correctToMove = false;
-        boolean grow = false;
-        //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite
+        boolean moveAllowed = false;
+        boolean hasEaten = false;
+        boolean triedToHitNeck = false;
+        //0 Pasto  1 Serpiente  2 Frutas  3 Obstaculos  4 Cabeza  5 Limite 6 pasto
         switch (element){
             case '0':
-                correctToMove = true;
-                grow = false;
+                moveAllowed = true;
                 break;
             case '2':
-                correctToMove = true;
-                grow = true;
+                moveAllowed = true;
+                hasEaten = true;
                 break;
             case '1':
-            case '3':
-            case '4':
-            case '5':
-                correctToMove = false;
-                grow = false;
+                triedToHitNeck = isNeckCollision(row, column);
+                break;
+            case '6':
+                moveAllowed = true;
                 break;
         }
-        return new boolean[] {correctToMove, grow};
+        return new boolean[] {moveAllowed, hasEaten, triedToHitNeck};
     }
 
     public void updateSnake(int[] oldHead, int[] oldTail, boolean grow){
-        if (!grow) board[oldTail[0]][oldTail[1]] = '0';
+        if (!grow) board[oldTail[0]][oldTail[1]] = grassAt(oldTail[0], oldTail[1]);
         if (snake.getSize() > 1) board[oldHead[0]][oldHead[1]] = '1';
         int[] head = snake.getHead();
         board[head[0]][head[1]] = '4';
@@ -127,7 +133,20 @@ public class Board {
         return board;
     }
 
-    private void placeHead(int row, int column){
+    private boolean isNeckCollision(int newRowPosition, int newColumnPosition){
+        int neckPositionRow = snake.getBody().get(0)[0];
+        int neckPositionCol = snake.getBody().get(0)[1];
+        if(newRowPosition == neckPositionRow && newColumnPosition == neckPositionCol) return true;
+        return false;
+    }
+
+    private void createSnake(int row, int column, char direction){
+        this.snake = new Snake(this.rows, this.columns, direction); //Revisar la direccion
+        // El número 4 corresponde a la cabeza
         board[row/2][column/2] = '4';
     }
+
+    public static int randomNum(int min, int max) {
+        return random.nextInt(max - min + 1) + min;
+    }   
 }

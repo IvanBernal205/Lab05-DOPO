@@ -13,34 +13,37 @@ public class HungrySnake {
 
     //2
     public boolean move (char direction){
-        int [] finalPos = {snake.getHead()[0], snake.getHead()[1]};
+        int [] lastHeadPosition = snake.getHead();
+        int [] newHeadPosition = snake.getHead();
 
         switch (direction){
             case 'N':
-                finalPos[0] = finalPos[0] - 1;
+                newHeadPosition[0] = lastHeadPosition[0] - 1;
                 break;
 
             case 'S':
-                finalPos[0] = finalPos[0] + 1;
+                newHeadPosition[0] = lastHeadPosition[0] + 1;
                 break;
 
             case 'E':
-                finalPos[1] = finalPos[1] + 1;
+                newHeadPosition[1] = lastHeadPosition[1] + 1;
                 break;
 
             case 'W':
-                finalPos[1] = finalPos[1] - 1;
+                newHeadPosition[1] = lastHeadPosition[1] - 1;
                 break;
         }
-        //[0] correctToMove [1] grow
-        boolean[] conditionsToMove = board.checkColission(finalPos[0], finalPos[1]);
+        // [0] moveAllowed
+        // [1] hasEaten
+        // [2] triedToHitNeck
+        boolean[] conditionsToMove = board.checkColission(newHeadPosition[0], newHeadPosition[1]);
 
-        if (conditionsToMove[0]){
-            int[] oldHead = snake.getHead();
-            int[] oldTail = snake.getTail();
-            snake.move(finalPos[0], finalPos[1], conditionsToMove[1]);
-            board.updateSnake(oldHead, oldTail, conditionsToMove[1]);
-            if (conditionsToMove[1]) board.addFruit();
+        if(conditionsToMove[2]) return true;
+        else if (conditionsToMove[0]){
+            int[] lastTailPosition = snake.getTail();
+            snake.move(newHeadPosition[0], newHeadPosition[1], conditionsToMove[1]);
+            board.updateSnake(lastHeadPosition, lastTailPosition, conditionsToMove[1]);
+            if (conditionsToMove[1]) board.addFruit(1);
             return true;
         }
         else return false;
