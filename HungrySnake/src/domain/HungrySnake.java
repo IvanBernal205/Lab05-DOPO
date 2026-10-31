@@ -12,9 +12,11 @@ public class HungrySnake {
     }
 
     //2
-    public boolean move (char direction){
+    public boolean move (char direction, boolean auto){
         int [] lastHeadPosition = snake.getHead();
         int [] newHeadPosition = snake.getHead();
+        if (snake.getDirection() == direction && !auto) return true;
+        snake.setDirection(direction);
 
         switch (direction){
             case 'N':
@@ -57,5 +59,9 @@ public class HungrySnake {
     //4
     public char[][] board(){
         return board.getBoard();
+    }
+
+    public char getDirection(){
+        return snake.getDirection();
     }
 }

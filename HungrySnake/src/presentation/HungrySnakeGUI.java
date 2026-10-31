@@ -349,14 +349,35 @@ public class HungrySnakeGUI extends JFrame{
         }
         // TODO:Revisar las negaciones "!"
         if (direction != ' '){
-            isGameOver = !game.move(direction);
+            isGameOver = !game.move(direction, false);
             if (!isGameOver) updateBoardDesign();
             else JOptionPane.showMessageDialog(null, "Perdiste");
+        }
+    }
+
+    public void loop() {
+        long lastMove = System.currentTimeMillis();
+
+        while (!isGameOver) {
+            long now = System.currentTimeMillis();
+
+            if (now - lastMove >= 350) {
+                lastMove = now;
+
+                isGameOver = !game.move(game.getDirection(), true);
+
+                if (!isGameOver) {
+                    updateBoardDesign();
+                } else {
+                    JOptionPane.showMessageDialog(null, "You lost");
+                }
+            }
         }
     }
 
     public static void main(String[] args){
         HungrySnakeGUI hungrySnake = new HungrySnakeGUI();
         hungrySnake.setVisible(true);
+        hungrySnake.loop();
     }
 }
